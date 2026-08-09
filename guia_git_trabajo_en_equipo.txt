@@ -1,0 +1,236 @@
+GUÍA DE GIT PARA TRABAJAR EN EQUIPO Proyecto de Barbería
+
+FLUJO RECOMENDADO
+
+Cuando se trabaja en equipo, no se recomienda que todos hagan cambios
+directamente sobre la rama main.
+
+Estructura recomendada:
+
+main ├── feature/citas ├── feature/servicios ├── feature/login └──
+fix/validacion-citas
+
+1.  ACTUALIZAR MAIN ANTES DE EMPEZAR
+
+Primero cambia a main:
+
+git switch main
+
+Luego descarga los cambios más recientes:
+
+git pull origin main
+
+2.  CREAR UNA RAMA PARA LA TAREA
+
+Ejemplo, si vas a trabajar en citas:
+
+git switch -c feature/citas
+
+Comprueba en qué rama estás:
+
+git branch
+
+El asterisco (*) indica la rama actual.
+
+3.  REALIZAR LOS CAMBIOS
+
+Modifica el código y prueba tu funcionalidad.
+
+Para revisar qué cambió:
+
+git status
+
+4.  PREPARAR LOS CAMBIOS
+
+Agrega los archivos modificados:
+
+git add .
+
+También puedes agregar archivos específicos:
+
+git add src/routers/cita.py
+
+5.  CREAR EL COMMIT
+
+Guarda los cambios con un mensaje descriptivo:
+
+git commit -m “feat: agrega reserva de citas”
+
+Ejemplos:
+
+git commit -m “feat: agrega rutas para servicios” git commit -m “fix:
+corrige validacion de citas” git commit -m “docs: agrega documentacion
+de API” git commit -m “refactor: reorganiza repositorios”
+
+6.  SUBIR LA RAMA A GITHUB
+
+La primera vez que subas esa rama:
+
+git push -u origin feature/citas
+
+Después de eso normalmente bastará con:
+
+git push
+
+7.  CREAR UN PULL REQUEST
+
+En GitHub crea un Pull Request desde:
+
+feature/citas ↓ main
+
+Los compañeros pueden revisar el código antes de integrarlo a main.
+
+Si el código está correcto, se hace el Merge del Pull Request.
+
+8.  ACTUALIZAR MAIN DESPUÉS DEL MERGE
+
+Después de que el Pull Request haya sido integrado:
+
+git switch main git pull origin main
+
+Así tendrás localmente la versión más reciente del proyecto.
+
+9.  ELIMINAR LA RAMA LOCAL
+
+Cuando ya no necesites la rama:
+
+git branch -d feature/citas
+
+Para eliminarla también de GitHub:
+
+git push origin –delete feature/citas
+
+FLUJO COMPLETO PARA CADA NUEVA TAREA
+
+git switch main git pull origin main
+
+git switch -c feature/nombre-de-la-tarea
+
+Trabajar en el código
+
+git status git add . git commit -m “feat: descripcion del cambio” git
+push -u origin feature/nombre-de-la-tarea
+
+Crear Pull Request en GitHub
+
+Revisar
+
+Hacer Merge
+
+git switch main git pull origin main
+
+Luego crear una nueva rama para la siguiente tarea.
+
+CONFLICTOS DE GIT
+
+Si dos personas modifican la misma parte del mismo archivo, Git puede
+generar un conflicto.
+
+Ejemplo:
+
+Miguel → src/routers/cita.py Carlos → src/routers/cita.py
+
+Si ambos modifican las mismas líneas, Git puede mostrar:
+
+CONFLICT (content): Merge conflict in src/routers/cita.py
+
+Esto no significa que el proyecto se haya perdido.
+
+Git necesita que una persona resuelva manualmente qué cambios deben
+conservarse.
+
+REGLAS IMPORTANTES PARA EL EQUIPO
+
+1.  No trabajar directamente sobre main.
+2.  Crear una rama por funcionalidad, tarea o corrección.
+3.  Antes de empezar una tarea, actualizar main con: git switch main git
+    pull origin main
+4.  Usar commits pequeños y descriptivos.
+5.  Subir las ramas a GitHub.
+6.  Usar Pull Requests para integrar cambios a main.
+7.  Revisar el código antes de hacer Merge.
+8.  Después del Merge, actualizar la rama main local.
+9.  No usar comandos destructivos como “git reset –hard” sin entender
+    exactamente qué hacen.
+10. No subir archivos sensibles como .env, contraseñas, claves o
+    credenciales.
+
+COMANDOS MÁS USADOS
+
+Ver estado:
+
+git status
+
+Ver ramas:
+
+git branch
+
+Cambiar de rama:
+
+git switch nombre-rama
+
+Crear y cambiar a una rama:
+
+git switch -c nombre-rama
+
+Actualizar una rama:
+
+git pull origin nombre-rama
+
+Agregar cambios:
+
+git add .
+
+Crear commit:
+
+git commit -m “mensaje”
+
+Subir cambios:
+
+git push
+
+Subir una rama por primera vez:
+
+git push -u origin nombre-rama
+
+Ver historial:
+
+git log –oneline
+
+EJEMPLO REAL
+
+Supongamos que Miguel debe implementar el módulo de citas.
+
+1.  Actualiza main:
+
+git switch main git pull origin main
+
+2.  Crea su rama:
+
+git switch -c feature/citas
+
+3.  Implementa los cambios.
+
+4.  Revisa:
+
+git status
+
+5.  Guarda:
+
+git add . git commit -m “feat: implementa reservas de citas”
+
+6.  Sube:
+
+git push -u origin feature/citas
+
+7.  Crea el Pull Request en GitHub.
+
+8.  El equipo revisa.
+
+9.  Se hace Merge a main.
+
+10. Miguel actualiza su repositorio:
+
+git switch main git pull origin main
+
+FIN
