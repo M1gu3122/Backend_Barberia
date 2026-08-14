@@ -1,236 +1,942 @@
-GUÍA DE GIT PARA TRABAJAR EN EQUIPO Proyecto de Barbería
+# GUÍA DE GIT PARA TRABAJAR EN EQUIPO
 
-FLUJO RECOMENDADO
+## Proyecto de Barbería
 
-Cuando se trabaja en equipo, no se recomienda que todos hagan cambios
-directamente sobre la rama main.
+Esta guía explica el flujo que debemos seguir para trabajar varios desarrolladores en el mismo proyecto sin sobrescribir el trabajo de los demás.
 
-Estructura recomendada:
+---
 
-main ├── feature/citas ├── feature/servicios ├── feature/login └──
-fix/validacion-citas
+# 1. ¿Cómo vamos a trabajar?
 
-1.  ACTUALIZAR MAIN ANTES DE EMPEZAR
+En el proyecto tendremos una rama principal:
 
-Primero cambia a main:
+```text
+main
+```
 
-git switch main
+La rama `main` debe contener siempre una versión estable del proyecto.
 
-Luego descarga los cambios más recientes:
+Cada integrante trabajará sus funcionalidades en una rama independiente:
 
-git pull origin main
+```text
+main
+│
+├── feature/citas
+├── feature/servicios
+├── feature/login
+├── feature/barberos
+└── fix/validacion-citas
+```
 
-2.  CREAR UNA RAMA PARA LA TAREA
+### ¿Por qué usamos ramas?
 
-Ejemplo, si vas a trabajar en citas:
+Porque así cada persona puede trabajar en su funcionalidad sin modificar directamente la versión principal.
 
-git switch -c feature/citas
+Por ejemplo:
 
-Comprueba en qué rama estás:
+```text
+Miguel → feature/barberos
+Carlos → feature/citas
+Andrés → feature/login
+```
 
-git branch
+Cada uno trabaja independientemente y posteriormente su código se integra a `main` mediante un **Pull Request**.
 
-El asterisco (*) indica la rama actual.
+---
 
-3.  REALIZAR LOS CAMBIOS
+# 2. ¿Cuándo debo crear una nueva rama?
 
-Modifica el código y prueba tu funcionalidad.
+Debes crear una nueva rama **cada vez que vayas a desarrollar una nueva funcionalidad, corrección o tarea**.
 
-Para revisar qué cambió:
+Por ejemplo:
 
-git status
+* Crear módulo de citas → `feature/citas`
+* Crear módulo de servicios → `feature/servicios`
+* Crear login → `feature/login`
+* Crear módulo de barberos → `feature/barberos`
+* Corregir validación → `fix/validacion-citas`
+* Corregir un error visual → `fix/error-interfaz`
 
-4.  PREPARAR LOS CAMBIOS
+### No hagas esto:
 
-Agrega los archivos modificados:
-
+```text
+main
+↓
+Trabajar directamente aquí
+↓
 git add .
-
-También puedes agregar archivos específicos:
-
-git add src/routers/cita.py
-
-5.  CREAR EL COMMIT
-
-Guarda los cambios con un mensaje descriptivo:
-
-git commit -m “feat: agrega reserva de citas”
-
-Ejemplos:
-
-git commit -m “feat: agrega rutas para servicios” git commit -m “fix:
-corrige validacion de citas” git commit -m “docs: agrega documentacion
-de API” git commit -m “refactor: reorganiza repositorios”
-
-6.  SUBIR LA RAMA A GITHUB
-
-La primera vez que subas esa rama:
-
-git push -u origin feature/citas
-
-Después de eso normalmente bastará con:
-
+git commit
 git push
+```
 
-7.  CREAR UN PULL REQUEST
+### Haz esto:
 
-En GitHub crea un Pull Request desde:
+```text
+main
+↓
+Actualizar main
+↓
+Crear una rama
+↓
+Trabajar en la rama
+↓
+Commit
+↓
+Push
+↓
+Pull Request
+↓
+Merge → main
+```
 
-feature/citas ↓ main
+---
 
-Los compañeros pueden revisar el código antes de integrarlo a main.
+# 3. Antes de comenzar cualquier tarea
 
-Si el código está correcto, se hace el Merge del Pull Request.
+Primero debemos asegurarnos de tener la versión más reciente de `main`.
 
-8.  ACTUALIZAR MAIN DESPUÉS DEL MERGE
+Ejecuta:
 
-Después de que el Pull Request haya sido integrado:
+```bash
+git switch main
+```
 
-git switch main git pull origin main
+Luego:
 
-Así tendrás localmente la versión más reciente del proyecto.
+```bash
+git pull origin main
+```
 
-9.  ELIMINAR LA RAMA LOCAL
+Esto descarga los cambios que otros compañeros hayan integrado a `main`.
 
-Cuando ya no necesites la rama:
+### IMPORTANTE
 
-git branch -d feature/citas
+**Siempre actualiza `main` antes de crear una nueva rama.**
 
-Para eliminarla también de GitHub:
+Así tu nueva rama comenzará desde la versión más reciente del proyecto.
 
-git push origin –delete feature/citas
+---
 
-FLUJO COMPLETO PARA CADA NUEVA TAREA
+# 4. Crear una nueva rama
 
-git switch main git pull origin main
+Supongamos que te asignaron desarrollar el módulo de citas.
 
-git switch -c feature/nombre-de-la-tarea
+Primero:
 
-Trabajar en el código
+```bash
+git switch main
+```
 
-git status git add . git commit -m “feat: descripcion del cambio” git
-push -u origin feature/nombre-de-la-tarea
+Actualizas:
 
-Crear Pull Request en GitHub
+```bash
+git pull origin main
+```
 
-Revisar
+Luego creas la rama:
 
-Hacer Merge
+```bash
+git switch -c feature/citas
+```
 
-git switch main git pull origin main
+Este comando hace dos cosas:
 
-Luego crear una nueva rama para la siguiente tarea.
+1. Crea la rama `feature/citas`.
+2. Cambia automáticamente a esa rama.
 
-CONFLICTOS DE GIT
+Puedes comprobarlo con:
 
-Si dos personas modifican la misma parte del mismo archivo, Git puede
-generar un conflicto.
+```bash
+git branch
+```
+
+Verás algo parecido a:
+
+```text
+* feature/citas
+  main
+```
+
+El `*` indica la rama en la que estás trabajando actualmente.
+
+---
+
+# 5. ¿Qué nombre debe tener la rama?
+
+Utilizaremos esta estructura:
+
+```text
+feature/nombre-de-la-funcionalidad
+```
+
+Para funcionalidades nuevas:
+
+```text
+feature/citas
+feature/login
+feature/barberos
+feature/servicios
+```
+
+Para correcciones:
+
+```text
+fix/validacion-citas
+fix/error-login
+fix/calculo-total
+```
+
+Para documentación:
+
+```text
+docs/documentacion-api
+```
+
+---
+
+# 6. Trabajar en la nueva rama
+
+Una vez creada la rama puedes modificar el código normalmente.
+
+Por ejemplo:
+
+```text
+feature/barberos
+```
+
+Puedes:
+
+* Crear archivos.
+* Modificar archivos.
+* Eliminar archivos.
+* Probar la funcionalidad.
+* Ejecutar el proyecto.
+
+Todos estos cambios permanecerán en tu rama.
+
+---
+
+# 7. Revisar qué cambió
+
+Antes de hacer un commit utiliza:
+
+```bash
+git status
+```
+
+Git mostrará los archivos modificados.
+
+También puedes revisar exactamente qué cambiaste:
+
+```bash
+git diff
+```
+
+Esto es recomendable antes de guardar los cambios.
+
+---
+
+# 8. Guardar los cambios con un commit
+
+Cuando hayas terminado una parte de tu trabajo:
+
+```bash
+git add .
+```
+
+Luego:
+
+```bash
+git commit -m "feat: agrega modulo de barberos"
+```
+
+### Ejemplos de commits
+
+Nueva funcionalidad:
+
+```bash
+git commit -m "feat: agrega rutas para servicios"
+```
+
+Corrección:
+
+```bash
+git commit -m "fix: corrige validacion de citas"
+```
+
+Documentación:
+
+```bash
+git commit -m "docs: agrega documentacion de API"
+```
+
+Reorganización:
+
+```bash
+git commit -m "refactor: reorganiza repositorios"
+```
+
+### Recomendación
+
+Los commits deben describir claramente lo que hiciste.
+
+Evita:
+
+```bash
+git commit -m "cambios"
+git commit -m "arreglado"
+git commit -m "cosas nuevas"
+```
+
+Es mejor:
+
+```bash
+git commit -m "feat: agrega formulario de barberos"
+```
+
+---
+
+# 9. Subir la rama a GitHub
+
+La primera vez que subas una rama debes utilizar:
+
+```bash
+git push -u origin feature/barberos
+```
+
+Después de haber configurado la rama, normalmente bastará con:
+
+```bash
+git push
+```
+
+Tu rama aparecerá en GitHub:
+
+```text
+main
+feature/barberos
+```
+
+---
+
+# 10. Crear un Pull Request
+
+Una vez que hayas terminado tu tarea, debes crear un **Pull Request (PR)**.
+
+El PR debe ir:
+
+```text
+feature/barberos
+        ↓
+       main
+```
+
+Es decir:
+
+> "Quiero integrar los cambios de mi rama `feature/barberos` en `main`."
+
+Los demás integrantes pueden revisar tu código antes de hacer el Merge.
+
+---
+
+# 11. Después del Merge
+
+Cuando el Pull Request haya sido aceptado y se haya hecho Merge a `main`, tu trabajo ya estará integrado.
+
+Ahora debes actualizar tu `main` local.
+
+Primero:
+
+```bash
+git switch main
+```
+
+Después:
+
+```bash
+git pull origin main
+```
+
+Ahora tu computadora tiene la versión actualizada del proyecto.
+
+---
+
+# 12. ¿Qué hago con mi rama después del Merge?
+
+Una vez que la funcionalidad ya fue integrada a `main`, la rama ya no es necesaria.
+
+Puedes eliminarla localmente:
+
+```bash
+git branch -d feature/barberos
+```
+
+Y eliminarla de GitHub:
+
+```bash
+git push origin --delete feature/barberos
+```
+
+Después, cuando tengas una nueva tarea, **no reutilices la rama anterior**.
+
+Crea una nueva:
+
+```bash
+git switch main
+git pull origin main
+git switch -c feature/nueva-tarea
+```
+
+---
+
+# 13. FLUJO COMPLETO PARA UNA NUEVA TAREA
+
+Cada vez que recibas una tarea nueva debes seguir este proceso:
+
+## Paso 1 — Ir a main
+
+```bash
+git switch main
+```
+
+## Paso 2 — Actualizar main
+
+```bash
+git pull origin main
+```
+
+## Paso 3 — Crear una nueva rama
 
 Ejemplo:
 
-Miguel → src/routers/cita.py Carlos → src/routers/cita.py
-
-Si ambos modifican las mismas líneas, Git puede mostrar:
-
-CONFLICT (content): Merge conflict in src/routers/cita.py
-
-Esto no significa que el proyecto se haya perdido.
-
-Git necesita que una persona resuelva manualmente qué cambios deben
-conservarse.
-
-REGLAS IMPORTANTES PARA EL EQUIPO
-
-1.  No trabajar directamente sobre main.
-2.  Crear una rama por funcionalidad, tarea o corrección.
-3.  Antes de empezar una tarea, actualizar main con: git switch main git
-    pull origin main
-4.  Usar commits pequeños y descriptivos.
-5.  Subir las ramas a GitHub.
-6.  Usar Pull Requests para integrar cambios a main.
-7.  Revisar el código antes de hacer Merge.
-8.  Después del Merge, actualizar la rama main local.
-9.  No usar comandos destructivos como “git reset –hard” sin entender
-    exactamente qué hacen.
-10. No subir archivos sensibles como .env, contraseñas, claves o
-    credenciales.
-
-COMANDOS MÁS USADOS
-
-Ver estado:
-
-git status
-
-Ver ramas:
-
-git branch
-
-Cambiar de rama:
-
-git switch nombre-rama
-
-Crear y cambiar a una rama:
-
-git switch -c nombre-rama
-
-Actualizar una rama:
-
-git pull origin nombre-rama
-
-Agregar cambios:
-
-git add .
-
-Crear commit:
-
-git commit -m “mensaje”
-
-Subir cambios:
-
-git push
-
-Subir una rama por primera vez:
-
-git push -u origin nombre-rama
-
-Ver historial:
-
-git log –oneline
-
-EJEMPLO REAL
-
-Supongamos que Miguel debe implementar el módulo de citas.
-
-1.  Actualiza main:
-
-git switch main git pull origin main
-
-2.  Crea su rama:
-
+```bash
 git switch -c feature/citas
+```
 
-3.  Implementa los cambios.
+## Paso 4 — Trabajar
 
-4.  Revisa:
+Realiza todos los cambios necesarios.
 
+## Paso 5 — Revisar
+
+```bash
 git status
+```
 
-5.  Guarda:
+Opcionalmente:
 
-git add . git commit -m “feat: implementa reservas de citas”
+```bash
+git diff
+```
 
-6.  Sube:
+## Paso 6 — Agregar cambios
 
+```bash
+git add .
+```
+
+## Paso 7 — Crear commit
+
+```bash
+git commit -m "feat: agrega modulo de citas"
+```
+
+## Paso 8 — Subir la rama
+
+```bash
 git push -u origin feature/citas
+```
 
-7.  Crea el Pull Request en GitHub.
+## Paso 9 — Crear Pull Request
 
-8.  El equipo revisa.
+En GitHub:
 
-9.  Se hace Merge a main.
+```text
+feature/citas → main
+```
 
-10. Miguel actualiza su repositorio:
+## Paso 10 — Revisión
 
-git switch main git pull origin main
+El equipo revisa el código.
 
-FIN
+## Paso 11 — Merge
+
+Si todo está correcto, se integra el Pull Request.
+
+## Paso 12 — Actualizar main
+
+Después del Merge:
+
+```bash
+git switch main
+git pull origin main
+```
+
+## Paso 13 — Eliminar la rama
+
+```bash
+git branch -d feature/citas
+```
+
+---
+
+# 14. ¿Qué pasa si ya existe una rama para mi tarea?
+
+Antes de crear una rama nueva puedes comprobar las ramas disponibles:
+
+```bash
+git branch
+```
+
+Para ver también las ramas que existen en GitHub:
+
+```bash
+git branch -a
+```
+
+Si ya existe:
+
+```text
+feature/citas
+```
+
+**NO debes crear otra rama con el mismo nombre.**
+
+Si esa rama es tuya y quieres continuar trabajando:
+
+```bash
+git switch feature/citas
+```
+
+Luego puedes actualizarla según el flujo que esté utilizando el equipo.
+
+---
+
+# 15. ¿Qué pasa si otro compañero está trabajando en la misma funcionalidad?
+
+Lo ideal es **no trabajar dos personas en la misma rama**.
+
+Por ejemplo:
+
+```text
+Carlos → feature/citas
+Miguel → feature/servicios
+Andrés → feature/login
+```
+
+Si dos personas necesitan trabajar en la misma funcionalidad, deben coordinarse.
+
+Una posibilidad es dividir la tarea:
+
+```text
+feature/citas-backend
+feature/citas-frontend
+```
+
+De esta manera se reduce la posibilidad de conflictos.
+
+---
+
+# 16. ¿Qué pasa si Git me dice "fetch first"?
+
+Por ejemplo:
+
+```text
+! [rejected] main -> main (fetch first)
+```
+
+Significa que GitHub tiene cambios que tu computadora todavía no tiene.
+
+Primero:
+
+```bash
+git fetch origin
+```
+
+Puedes comprobar los commits que están en GitHub y no tienes localmente:
+
+```bash
+git log main..origin/main --oneline
+```
+
+Y los commits que tienes localmente y todavía no están en GitHub:
+
+```bash
+git log origin/main..main --oneline
+```
+
+**No utilices `git push --force` sin saber exactamente qué estás haciendo.**
+
+---
+
+# 17. Conflictos de Git
+
+Puede ocurrir que dos personas modifiquen las mismas líneas de un archivo.
+
+Por ejemplo:
+
+```text
+Miguel → src/routers/cita.py
+Carlos → src/routers/cita.py
+```
+
+Si ambos modifican la misma parte, Git puede mostrar:
+
+```text
+CONFLICT (content): Merge conflict in src/routers/cita.py
+```
+
+Esto **NO significa que el proyecto se haya perdido**.
+
+Git está indicando que necesita que decidamos qué cambios conservar.
+
+El archivo puede mostrar algo parecido a:
+
+```text
+<<<<<<< HEAD
+Código de Miguel
+=======
+Código de Carlos
+>>>>>>> otra-rama
+```
+
+Debemos editar el archivo y decidir qué código debe permanecer.
+
+Después:
+
+```bash
+git add .
+```
+
+Y continuar con el proceso correspondiente.
+
+**Si no entiendes un conflicto, no ejecutes comandos destructivos. Pide ayuda antes de continuar.**
+
+---
+
+# 18. Reglas importantes del equipo
+
+### Regla 1
+
+**No trabajar directamente sobre `main`.**
+
+### Regla 2
+
+**Crear una rama nueva para cada tarea.**
+
+### Regla 3
+
+Antes de crear una rama:
+
+```bash
+git switch main
+git pull origin main
+```
+
+### Regla 4
+
+Utilizar nombres descriptivos para las ramas.
+
+### Regla 5
+
+Hacer commits pequeños y descriptivos.
+
+### Regla 6
+
+Subir las ramas a GitHub.
+
+### Regla 7
+
+Utilizar Pull Requests para integrar cambios a `main`.
+
+### Regla 8
+
+Revisar el código antes de hacer Merge.
+
+### Regla 9
+
+Después de un Merge, actualizar `main`:
+
+```bash
+git switch main
+git pull origin main
+```
+
+### Regla 10
+
+No utilizar comandos destructivos sin entenderlos.
+
+Especialmente:
+
+```bash
+git reset --hard
+git push --force
+```
+
+### Regla 11
+
+**Nunca subir información sensible al repositorio.**
+
+No subir:
+
+```text
+.env
+contraseñas
+tokens
+API keys
+credenciales
+claves privadas
+```
+
+Utilizar `.gitignore` para evitar subir estos archivos accidentalmente.
+
+---
+
+# 19. Comandos principales
+
+### Ver estado
+
+```bash
+git status
+```
+
+### Ver ramas locales
+
+```bash
+git branch
+```
+
+### Ver todas las ramas
+
+```bash
+git branch -a
+```
+
+### Cambiar de rama
+
+```bash
+git switch nombre-rama
+```
+
+### Crear una rama
+
+```bash
+git switch -c nombre-rama
+```
+
+### Actualizar una rama
+
+```bash
+git pull origin nombre-rama
+```
+
+### Descargar información de GitHub sin modificar archivos
+
+```bash
+git fetch origin
+```
+
+### Agregar cambios
+
+```bash
+git add .
+```
+
+### Crear commit
+
+```bash
+git commit -m "mensaje"
+```
+
+### Subir cambios
+
+```bash
+git push
+```
+
+### Subir una rama por primera vez
+
+```bash
+git push -u origin nombre-rama
+```
+
+### Ver historial
+
+```bash
+git log --oneline
+```
+
+### Ver cambios
+
+```bash
+git diff
+```
+
+---
+
+# 20. EJEMPLO REAL — MIGUEL DESARROLLA BARBEROS
+
+Supongamos que a Miguel le asignaron:
+
+> "Implementar el módulo de barberos."
+
+### 1. Actualiza `main`
+
+```bash
+git switch main
+git pull origin main
+```
+
+### 2. Crea su rama
+
+```bash
+git switch -c feature/barberos
+```
+
+### 3. Comprueba la rama
+
+```bash
+git branch
+```
+
+Debe aparecer:
+
+```text
+* feature/barberos
+  main
+```
+
+### 4. Desarrolla
+
+Miguel implementa:
+
+```text
+Formulario de barberos
+CRUD de barberos
+Validaciones
+Rutas
+```
+
+### 5. Revisa sus cambios
+
+```bash
+git status
+```
+
+```bash
+git diff
+```
+
+### 6. Guarda los cambios
+
+```bash
+git add .
+```
+
+```bash
+git commit -m "feat: implementa modulo de barberos"
+```
+
+### 7. Sube la rama
+
+```bash
+git push -u origin feature/barberos
+```
+
+### 8. Crea el Pull Request
+
+En GitHub:
+
+```text
+feature/barberos
+        ↓
+       main
+```
+
+### 9. El equipo revisa
+
+Si todo está correcto:
+
+```text
+Merge Pull Request
+```
+
+### 10. Miguel actualiza su `main`
+
+```bash
+git switch main
+git pull origin main
+```
+
+### 11. Elimina la rama antigua
+
+```bash
+git branch -d feature/barberos
+```
+
+Si también quieren eliminarla de GitHub:
+
+```bash
+git push origin --delete feature/barberos
+```
+
+---
+
+# 21. RESUMEN: ¿QUÉ HAGO CADA VEZ QUE ME ASIGNAN UNA TAREA?
+
+Memoriza este flujo:
+
+```text
+        ┌─────────────────┐
+        │   Nueva tarea   │
+        └────────┬────────┘
+                 ↓
+        git switch main
+                 ↓
+        git pull origin main
+                 ↓
+    git switch -c feature/tarea
+                 ↓
+          Trabajar código
+                 ↓
+           git status
+                 ↓
+            git add .
+                 ↓
+       git commit -m "feat: ..."
+                 ↓
+       git push -u origin
+       feature/tarea
+                 ↓
+       Crear Pull Request
+                 ↓
+          Revisión equipo
+                 ↓
+              MERGE
+                 ↓
+        git switch main
+                 ↓
+        git pull origin main
+                 ↓
+        Nueva tarea → repetir
+```
+
+## REGLA DE ORO
+
+**Nunca empieces una tarea nueva trabajando directamente sobre `main`.**
+
+Siempre:
+
+```bash
+git switch main
+git pull origin main
+git switch -c feature/nueva-tarea
+```
+
+Y cuando termines:
+
+```text
+Rama → Push → Pull Request → Revisión → Merge → Actualizar main
+```
+
+Ese será el flujo estándar para trabajar en equipo en el proyecto de Barbería.
