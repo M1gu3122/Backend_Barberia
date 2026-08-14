@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 
 from src.models.usuario_model import Usuario
-from src.schemas.usuario_schema import UsuarioCreate, UsuarioUpdate, UsuarioResponse
+from src.schemas.usuario_schema import UsuarioCreate, UsuarioUpdate, UsuarioResponse, UsuarioConCantidadCitas
 from src.repositories.usuario_repository import UsuarioRepository
 from src.services.base_service import BaseService
 
@@ -31,14 +31,21 @@ class UsuarioService(BaseService[Usuario]):
     # ---------------------------------------------------------------
     #  CREATE (override con validación de negocio)
     # ---------------------------------------------------------------
-    def crear_usuario(self, datos: UsuarioCreate) -> UsuarioResponse:
+    def crear_usuario(self, datos: UsuarioCreate, id = None) -> UsuarioResponse:
         """
         Reglas de negocio:
         1. El nombre de usuario (`usuario`) debe ser único en la BD.
         2. El correo (`correo`) debe ser único en la BD.
         3. La contraseña debe tener al menos 8 caracteres.
         4. La contraseña debe tener seguridad mínima (mayúsculas, minúsculas, números)
+
+        Si `id` viene definido, significa que un administrador o recepcionista
+        está creando el usuario: la contraseña se asigna automáticamente al
+        número de identificación (`id_usuario`) y no es requisito proporcionarla.
         """
+        if self._repo.exists(datos.id_usuario):
+            raise ValueError("El usuario ya existe")
+        
         # Regla 1: nombre de usuario único
         if self._repo.exists_usuario(datos.usuario):
             raise ValueError("El nombre de usuario ya está en uso")
@@ -47,13 +54,22 @@ class UsuarioService(BaseService[Usuario]):
         if self._repo.exists_correo(datos.correo):
             raise ValueError("El correo electrónico ya está registrado")
 
+        if id is not None:
+            # El administrador/recepcionista crea el usuario:
+            # la contraseña pasa a ser el número de identificación (id_usuario)
+            datos_contrasena_hashed = datos.model_copy()
+            datos_contrasena_hashed.contraseña = self.hash_contraseña(str(datos.id_usuario))
+
+            usuario_orm = self._repo.create(datos_contrasena_hashed)
+            return UsuarioResponse.model_validate(usuario_orm)
+
         # Regla 3: contraseña mínima
         if len(datos.contraseña) < 8:
             raise ValueError("La contraseña debe tener al menos 8 caracteres")
 
         # Regla 4: Validación de seguridad de contraseña
-        if not self._validar_seguridad_contraseña(datos.contraseña):
-            raise ValueError("La contraseña debe contener al menos una mayúscula, una minúscula y un número")
+        # if not self._validar_seguridad_contraseña(datos.contraseña):
+        #     raise ValueError("La contraseña debe contener al menos una mayúscula, una minúscula y un número")
 
         # Hash de contraseña antes de crear
         datos_contrasena_hashed = datos.model_copy()
@@ -193,3 +209,21 @@ class UsuarioService(BaseService[Usuario]):
         )
         datos_actualizados.contraseña = self.hash_contraseña(nueva_contraseña)
         return self._repo.update(id_usuario, datos_actualizados) is not None
+
+    # ---------------------------------------------------------------
+    #  MÉTODOS AUXILIARES
+    # ---------------------------------------------------------------
+    def exists_usuario(self, nombre_usuario: str) -> bool:
+        """Comprueba si existe un usuario con el nombre dado."""
+        return self._repo.exists_usuario(nombre_usuario)
+
+    def exists_correo(self, correo: str) -> bool:
+        """Comprueba si existe un usuario con el correo dado."""
+        return self._repo.exists_correo(correo)
+    
+    def obtener_usuarios_panel_admin(self) -> List[UsuarioConCantidadCitas]:
+        return [UsuarioConCantidadCitas.model_validate(u) for u in self._repo.get_usuarios_con_cantidad_citas()]
+    
+    
+    def obtener_perfil_usuario(self,id):
+        return self._repo.get_perfil_cliente(id)

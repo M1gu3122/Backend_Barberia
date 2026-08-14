@@ -62,6 +62,10 @@ class EmpleadoRepository(Repository[Empleado]):
             self._model.tipo_empleado == TipoEmpleado.BARBERO,
             self._model.estado == EstadoEmpleado.ACTIVO
         ).all()
+        
+    def get_empleado(self, id_empleado: int, tipo: str) -> Optional[Empleado]:
+        return self._session.query(self._model).filter(self._model.id_usuario == id_empleado, self._model.tipo_empleado == tipo).first()
+        
 
     def get_by_barberia(self, id_barberia: int) -> List[Empleado]:
         """Obtiene empleados asociados a una barbería específica."""

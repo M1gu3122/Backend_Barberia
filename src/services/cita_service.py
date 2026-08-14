@@ -1,6 +1,7 @@
 # src/services/cita_service.py
 from typing import List, Optional
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session
 
 from src.models.cita_servicio_model import CitaServicio
@@ -32,8 +33,8 @@ class CitaService(BaseService):
         cliente = self._usuario_repo.get_by_id(id_cliente)
         return cliente is not None
 
-    def _validar_barbero(self, id_barbero: int) -> bool:
-        barbero = self._empleado_repo.get_by_id(id_barbero)
+    def _validar_barbero(self, id_barbero: int, tipo_empleado:str) -> bool:
+        barbero = self._empleado_repo.get_empleado(id_barbero, tipo_empleado)
         if not barbero:
             return False
         return barbero.estado == "Activo"
@@ -42,8 +43,8 @@ class CitaService(BaseService):
         barberia = self._barberia_repo.get_by_id(id_barberia)
         return barberia is not None
 
-    def _validar_barbero_en_barberia(self, id_barbero: int, id_barberia: int) -> bool:
-        return True
+    # def _validar_barbero_en_barberia(self, id_barbero: int, id_barberia: int) -> bool:
+    #     return True
 
     def _validar_servicios(self, id_servicios: List[int], id_barberia: int) -> bool:
         for id_servicio in id_servicios:
@@ -78,18 +79,21 @@ class CitaService(BaseService):
 
         for cita in citas_existentes:
 
+            # Solo verificar solapamiento si la cita está pendiente o confirmada
             if cita.estado_cita in [EstadoCita.PENDIENTE, EstadoCita.CONFIRMADA]:
 
                 duracion_cita_existente = self._calcular_tiempo_servicios(cita.id_cita)
 
-            # Temporalmente 60 minutos mientras no haya servicios
-            if duracion_cita_existente == 0:
-                duracion_cita_existente = 60
+                # Temporalmente 60 minutos mientras no haya servicios
+                if duracion_cita_existente == 0:
+                    duracion_cita_existente = 60
 
-            cita_fin = cita.fecha_hora + timedelta(minutes=duracion_cita_existente)
+                cita_fin = cita.fecha_hora + timedelta(minutes=duracion_cita_existente)
 
-            if cita.fecha_hora < fin_cita and cita_fin > fecha_hora:
-                return False
+                # Verificar solapamiento: la nueva cita comienza antes de que termine la existente
+                # Y la existente termina después de que empieza la nueva
+                if cita.fecha_hora < fin_cita and cita_fin > fecha_hora:
+                    return False
 
         return True
 
@@ -109,6 +113,7 @@ class CitaService(BaseService):
 
     # CREATE - Reglas de negocio actualizadas
     def crear_cita(self, datos: CitaCreate) -> CitaResponse:
+        COL_TZ = ZoneInfo("America/Bogota")
         """
         Reglas de negocio:
         1. El cliente, el barbero y la barbería deben existir.
@@ -124,21 +129,24 @@ class CitaService(BaseService):
             raise ValueError(f"El cliente con ID {datos.id_cliente} no existe")
 
         # Regla 2: verificar existencia del barbero
-        if not self._validar_barbero(datos.id_barbero):
+        if not self._validar_barbero(datos.id_barbero, "Barbero"):
             raise ValueError(
                 f"El barbero con ID {datos.id_barbero} no existe o no está activo"
             )
 
-        # Regla 3: verificar existencia de la barbería
-        if not self._validar_barberia(datos.id_barberia):
-            raise ValueError(f"La barbería con ID {datos.id_barberia} no existe")
+        # # Regla 3: verificar existencia de la barbería
+        # if not self._validar_barberia(datos.id_barberia):
+        #     raise ValueError(f"La barbería con ID {datos.id_barberia} no existe")
 
-        # Regla 4: Verificar relación barbero-barbería
-        if not self._validar_barbero_en_barberia(datos.id_barbero, datos.id_barberia):
-            raise ValueError(f"El barbero no pertenece a la barbería especificada")
+        # # Regla 4: Verificar relación barbero-barbería
+        # if not self._validar_barbero_en_barberia(datos.id_barbero, datos.id_barberia):
+        #     raise ValueError(f"El barbero no pertenece a la barbería especificada")
 
         # Regla 5: fecha/hora no debe ser en el pasado
-        if datos.fecha_hora < datetime.now():
+        fecha_hora = datos.fecha_hora
+        if fecha_hora.tzinfo is None:
+            fecha_hora = fecha_hora.replace(tzinfo=COL_TZ)
+        if fecha_hora < datetime.now(COL_TZ):
             raise ValueError("No se pueden crear citas en fechas/horas pasadas")
 
         # Regla 6: verificar disponibilidad del barbero
