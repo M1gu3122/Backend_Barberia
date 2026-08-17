@@ -8,7 +8,7 @@ from enum import Enum
 from decimal import Decimal
 from typing import Optional
 
-from src.models.servicio_model import EstadoServicio
+from src.models.servicio_model import EstadoServicio, TipoServicio
 
 
 
@@ -18,7 +18,8 @@ class ServicioBase(BaseModel):
     """Modelo base con campos comunes para operaciones CRUD."""
 
     id_servicio: Optional[int] = Field(None, description="ID del servicio")
-    tipo_servicio: str = Field(..., min_length=1, max_length=100, description="Nombre del servicio")
+    nombre_servicio: str = Field(..., min_length=1, max_length=100, description="Nombre del servicio")
+    tipo_servicio: TipoServicio = Field(..., description="Tipo del servicio (PRINCIPAL, ADICIONAL, COMBO)")
     descripcion_servicio: Optional[str] = None
     estado_servicio: EstadoServicio = Field(..., description="Estado del servicio")
     tiempo_estimado: int = Field(..., gt=0, description="Tiempo estimado en minutos")
@@ -38,7 +39,8 @@ class ServicioCreate(ServicioBase):
 class ServicioUpdate(BaseModel):
     """Modelo para actualizar un servicio existente (todos los campos opcionales)."""
 
-    tipo_servicio: Optional[str] = Field(None, min_length=1, max_length=100)
+    nombre_servicio: Optional[str] = Field(None, min_length=1, max_length=100)
+    tipo_servicio: Optional[TipoServicio] = None
     descripcion_servicio: Optional[str] = None
     estado_servicio: Optional[EstadoServicio] = None
     tiempo_estimado: Optional[int] = Field(None, gt=0)

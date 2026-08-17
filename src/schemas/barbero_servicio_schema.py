@@ -21,3 +21,10 @@ class BarberoServicioResponse(BarberoServicioBase):
     model_config = ConfigDict(
         from_attributes=True
     )
+
+
+class BarberoDisponibleResponse(BaseModel):
+    """Barbero activo que puede realizar todos los servicios seleccionados."""
+    id_usuario: int
+    nombres: str
+    apellidos: str

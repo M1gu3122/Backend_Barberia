@@ -6,7 +6,7 @@ from typing import List
 from src.schemas.cita_servicio_schema import CitaServicioCreate
 from src.config.database import get_db
 from src.services.cita_service import CitaService
-from src.schemas.cita_schema import CitaCreate, CitaUpdate, CitaResponse
+from src.schemas.cita_schema import CitaCreate, CitaUpdate, CitaResponse, CitaDetalleResponse
 
 router = APIRouter(
     prefix="/citas",
@@ -22,6 +22,19 @@ async def listar_citas(skip: int = 0, limit: int = 100, service: CitaService = D
     citas = service.listar_citas()
     return citas
 
+@router.get("/obtener_citas_detalle", response_model=List[CitaDetalleResponse])
+async def listar_citas_detalle(service: CitaService = Depends(get_cita_service)):
+    """
+    Obtener todas las citas con sus servicios agrupados y datos del cliente y barbero.
+
+    Args:
+        service: Servicio de citas
+
+    Returns:
+        List[CitaDetalleResponse]: Citas con detalle
+    """
+    return service.listar_citas_con_detalle()
+
 @router.get("/obtener_cita/{id}", response_model=CitaResponse)
 async def obtener_cita(id: int, service: CitaService = Depends(get_cita_service)):
     cita = service.obtener_cita_por_id(id)  
@@ -32,7 +45,7 @@ async def obtener_cita(id: int, service: CitaService = Depends(get_cita_service)
 @router.post("/crear_cita/", response_model=CitaResponse) 
 async def crear_cita(cita: CitaCreate, service: CitaService = Depends(get_cita_service)):
     try:
-        nueva_cita = service.crear_cita(cita)  
+        nueva_cita = await service.crear_cita(cita)  
         return nueva_cita
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -76,36 +89,6 @@ async def listar_citas_por_fecha(
     except ValueError:
         raise HTTPException(status_code=400, detail="Formato de fecha inválido")
     
-    # src/routers/cita_router.py
-@router.post("/asignar_servicios/{id_cita}/servicios")
-async def asignar_servicios_a_cita(
-    id_cita: int, 
-    servicios: List[int], 
-    service: CitaService = Depends(get_cita_service)
-):
-    # Validar que la cita exista
-    cita = service.obtener_cita_por_id(id_cita)
-    if not cita:
-        raise HTTPException(status_code=404, detail="Cita no encontrada")
-    
-    # Asignar servicios uno por uno
-    for servicio_id in servicios:
-        # Crear la relación en la tabla intermedia
-        cita_servicio_data = CitaServicioCreate(
-            id_cita=id_cita,
-            id_servicio=servicio_id
-        )
-        service.asignar_servicio_a_cita(cita_servicio_data)
-    
-    # Calcular tiempo total
-    tiempo_total = service._calcular_tiempo_servicios(id_cita)
-    
-    return {
-        "message": "Servicios asignados correctamente", 
-        "tiempo_total": tiempo_total,
-        "cita_id": id_cita
-    }
-
 @router.put("/{id_cita}/confirmar")
 async def confirmar_cita(id_cita: int, service: CitaService = Depends(get_cita_service)):
     cita = service.obtener_cita_por_id(id_cita)

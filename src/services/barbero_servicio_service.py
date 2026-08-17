@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from src.models.barbero_servicio_model import BarberoServicio
-from src.schemas.barbero_servicio_schema import BarberoServicioCreate, BarberoServicioUpdate, BarberoServicioResponse
+from src.schemas.barbero_servicio_schema import BarberoServicioCreate, BarberoServicioUpdate, BarberoServicioResponse, BarberoDisponibleResponse
 from src.repositories.barbero_servicio_repository import BarberoServicioRepository
 from src.services.base_service import BaseService
 
@@ -38,3 +38,10 @@ class BarberoServicioService(BaseService[BarberoServicio]):
     def eliminar_relacion(self, id_usuario: int, id_servicio: int) -> bool:
         """Elimina una relación barbero-servicio."""
         return self._repo.delete_by_barbero_and_servicio(id_usuario, id_servicio)
+
+    def obtener_barberos_con_todos_los_servicios(self, ids_servicio: List[int]) -> List[BarberoDisponibleResponse]:
+        """Obtiene los barberos activos que pueden realizar todos los servicios indicados."""
+        return [
+            BarberoDisponibleResponse.model_validate(b)
+            for b in self._repo.get_barberos_con_todos_los_servicios(ids_servicio)
+        ]

@@ -16,11 +16,11 @@ class ServicioRepository(Repository[Servicio]):
         """Obtiene servicios filtrados por estado (Activo/Inactivo)."""
         return self._session.query(Servicio).filter(Servicio.estado_servicio == estado).all()
 
-    def get_by_tipo(self, tipo_servicio: str) -> List[Servicio]:
-        """Obtiene servicios cuyo tipo coincida (búsqueda parcial)."""
+    def get_by_tipo(self, nombre_servicio: str) -> List[Servicio]:
+        """Obtiene servicios cuyo nombre coincida (búsqueda parcial)."""
         return (
             self._session.query(Servicio)
-            .filter(Servicio.tipo_servicio.ilike(f"%{tipo_servicio}%"))
+            .filter(Servicio.nombre_servicio.ilike(f"%{nombre_servicio}%"))
             .all()
         )
     def get_servicio_by_id(self, id_servicio: int) -> Optional[Servicio]:

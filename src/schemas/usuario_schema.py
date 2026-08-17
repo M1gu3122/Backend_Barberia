@@ -8,6 +8,7 @@ from typing import Optional
 from datetime import datetime
 
 from src.models.cita_model import EstadoCita
+from src.models.usuario_model import EstadoUsuario
 
 
 class UsuarioBase(BaseModel):
@@ -19,6 +20,7 @@ class UsuarioBase(BaseModel):
     contraseña: str
     correo: str
     telefono: Optional[str] = None
+    estado: EstadoUsuario = EstadoUsuario.ACTIVO
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -41,6 +43,7 @@ class UsuarioUpdate(BaseModel):
     contraseña: Optional[str] = None
     correo: Optional[EmailStr] = None
     telefono: Optional[str] = None
+    estado: Optional[EstadoUsuario] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -62,7 +65,7 @@ class UsuarioConCantidadCitas(UsuarioResponse):
 
 
 class PerfilUsuarioResponse(BaseModel):
-    """Modelo para el perfil de un usuario: datos personales + sus citas con servicios."""
+    """Modelo para el perfil de un usuario: datos personales + sus citas con servicios agrupados."""
     id_usuario: int
     nombres: str
     apellidos: str
@@ -70,12 +73,11 @@ class PerfilUsuarioResponse(BaseModel):
     correo: str
     id_cita: Optional[int] = None
     id_barbero: Optional[int] = None
-    nombre_barbero: Optional[str] = None
-    apellido_barbero: Optional[str] = None
+    nombres_barbero: Optional[str] = None
+    apellidos_barbero: Optional[str] = None
     fecha_hora: Optional[datetime] = None
     estado_cita: Optional[EstadoCita] = None
-    id_servicio: Optional[int] = None
-    tipo_servicio: Optional[str] = None
+    servicios: Optional[str] = None
 
 
 # ✅ Añadido para evitar exponer contraseñas

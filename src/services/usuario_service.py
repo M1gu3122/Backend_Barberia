@@ -225,5 +225,31 @@ class UsuarioService(BaseService[Usuario]):
         return [UsuarioConCantidadCitas.model_validate(u) for u in self._repo.get_usuarios_con_cantidad_citas()]
     
     
-    def obtener_perfil_usuario(self,id):
-        return self._repo.get_perfil_cliente(id)
+    def obtener_perfil_usuario(self, id_cliente: int) -> List[dict]:
+        """Perfil de un cliente: datos personales + sus citas con servicios agrupados."""
+        from src.repositories.cita_repository import CitaRepository
+
+        citas = CitaRepository(self._db).get_citas_con_detalle(id_cliente=id_cliente)
+        if citas:
+            return citas
+
+        usuario = self._repo.get_by_id(id_cliente)
+        if not usuario:
+            return []
+
+        return [
+            {
+                "id_usuario": usuario.id_usuario,
+                "nombres": usuario.nombres,
+                "apellidos": usuario.apellidos,
+                "telefono": usuario.telefono,
+                "correo": usuario.correo,
+                "id_cita": None,
+                "id_barbero": None,
+                "nombres_barbero": None,
+                "apellidos_barbero": None,
+                "fecha_hora": None,
+                "estado_cita": None,
+                "servicios": None,
+            }
+        ]

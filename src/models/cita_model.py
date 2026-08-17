@@ -69,6 +69,19 @@ class Cita(Base):
     def esta_confirmada(self) -> bool:
         return self.estado_cita == EstadoCita.CONFIRMADA
 
+    # Propiedades para acceso directo a datos del cliente (para CitaResponse)
+    @property
+    def nombres(self) -> str:
+        return self.cliente.nombres if self.cliente else ""
+
+    @property
+    def apellidos(self) -> str:
+        return self.cliente.apellidos if self.cliente else ""
+
+    @property
+    def correo(self) -> str:
+        return self.cliente.correo if self.cliente else ""
+
     def confirmar(self) -> None:
         """Cambia el estado a Confirmada"""
         self.estado_cita = EstadoCita.CONFIRMADA

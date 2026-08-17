@@ -21,11 +21,11 @@ class ServicioService(BaseService):
     def crear_servicio(self, datos: ServicioCreate) -> ServicioResponse:
         """
         Reglas de negocio:
-        1. El tipo de servicio no puede estar vacío.
+        1. El nombre del servicio no puede estar vacío.
         2. El tiempo estimado debe ser mayor a 0.
         3. El precio debe ser mayor a 0.
         """
-        self.validar_no_vacio(datos.tipo_servicio, "tipo_servicio")
+        self.validar_no_vacio(datos.nombre_servicio, "nombre_servicio")
         self.validar_positivo(datos.tiempo_estimado, "tiempo_estimado")
         self.validar_positivo(float(datos.precio_servicio), "precio_servicio")
 
@@ -56,7 +56,7 @@ class ServicioService(BaseService):
         return [ServicioResponse.model_validate(s) for s in self._repo.get_by_estado(EstadoServicio.ACTIVO)]
 
     def buscar_servicios(self, termino: str) -> List[ServicioResponse]:
-        """Busca servicios por tipo (búsqueda parcial)."""
+        """Busca servicios por nombre (búsqueda parcial)."""
         return [ServicioResponse.model_validate(s) for s in self._repo.get_by_tipo(termino)]
 
     # ---------------------------------------------------------------

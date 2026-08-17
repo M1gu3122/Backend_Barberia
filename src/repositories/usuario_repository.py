@@ -72,12 +72,18 @@ class UsuarioRepository:
         return usuario
 
     def update(self, id_: int, updates: UsuarioUpdate) -> Optional[Usuario]:
-        """Actualiza un usuario existente."""
+        """Actualiza un usuario existente.
+
+        La identidad del usuario siempre viene del parámetro `id_` (ruta),
+        nunca del cuerpo. Se ignora `id_usuario` en el payload para evitar
+        que se reescriba la clave primaria y se rompan las tablas hijas.
+        """
         usuario = self._db.query(Usuario).filter(Usuario.id_usuario == id_).first()
         if not usuario:
             return None
 
         update_data = updates.model_dump(exclude_unset=True)
+        update_data.pop("id_usuario", None)
         for key, value in update_data.items():
             setattr(usuario, key, value)
 
@@ -158,92 +164,6 @@ class UsuarioRepository:
                 "cantidad_citas": cantidad_citas,
             }
             for usuario, cantidad_citas in rows
-        ]
-
-    def get_perfil_cliente(self, id_cliente: int) -> List[dict]:
-        """
-        Obtiene las citas de un cliente con los servicios y el barbero de cada cita.
-
-        Equivale a:
-        SELECT u.id_usuario, u.nombres, u.apellidos, u.telefono, u.correo,
-               c.id_cita, c.id_barbero, b.nombres AS nombre_barbero,
-               b.apellidos AS apellido_barbero,
-               c.fecha_hora, c.estado_cita,
-               cs.id_servicio, s.tipo_servicio
-        FROM usuario u
-        LEFT JOIN cita c ON u.id_usuario = c.id_cliente
-        LEFT JOIN usuario b ON c.id_barbero = b.id_usuario
-        LEFT JOIN cita_servicio cs ON c.id_cita = cs.id_cita
-        LEFT JOIN servicio s ON cs.id_servicio = s.id_servicio
-        WHERE u.id_usuario = :id_cliente
-        ORDER BY c.fecha_hora DESC
-        """
-        from sqlalchemy.orm import aliased
-        from src.models.cita_model import Cita
-        from src.models.cita_servicio_model import CitaServicio
-        from src.models.servicio_model import Servicio
-
-        Barbero = aliased(Usuario)
-
-        rows = (
-            self._db.query(
-                Usuario.id_usuario,
-                Usuario.nombres,
-                Usuario.apellidos,
-                Usuario.telefono,
-                Usuario.correo,
-
-                Cita.id_cita,
-                Cita.id_barbero,
-                Barbero.nombres.label("nombre_barbero"),
-                Barbero.apellidos.label("apellido_barbero"),
-
-                Cita.fecha_hora,
-                Cita.estado_cita,
-
-                CitaServicio.id_servicio,
-                Servicio.tipo_servicio,
-            )
-            .outerjoin(Cita, Cita.id_cliente == Usuario.id_usuario)
-            .outerjoin(Barbero, Cita.id_barbero == Barbero.id_usuario)
-            .outerjoin(CitaServicio, Cita.id_cita == CitaServicio.id_cita)
-            .outerjoin(Servicio, CitaServicio.id_servicio == Servicio.id_servicio)
-            .filter(Usuario.id_usuario == id_cliente)
-            .order_by(Cita.fecha_hora.desc())
-            .all()
-        )
-
-        return [
-            {
-                "id_usuario": id_usuario,
-                "nombres": nombres,
-                "apellidos": apellidos,
-                "telefono": telefono,
-                "correo": correo,
-                "id_cita": id_cita,
-                "id_barbero": id_barbero,
-                "nombre_barbero": nombre_barbero,
-                "apellido_barbero": apellido_barbero,
-                "fecha_hora": fecha_hora,
-                "estado_cita": estado_cita,
-                "id_servicio": id_servicio,
-                "tipo_servicio": tipo_servicio,
-            }
-            for (
-                id_usuario,
-                nombres,
-                apellidos,
-                telefono,
-                correo,
-                id_cita,
-                id_barbero,
-                nombre_barbero,
-                apellido_barbero,
-                fecha_hora,
-                estado_cita,
-                id_servicio,
-                tipo_servicio,
-            ) in rows
         ]
 
     def exists(self, id_: int) -> bool:

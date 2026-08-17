@@ -28,6 +28,10 @@ class BarberiaRepository(Repository[Barberia]):
         """Obtiene todas las barberías."""
         return self._session.query(Barberia).all()
 
+    def get_by_id(self, id_: int) -> Optional[Barberia]:
+        """Obtiene una barbería por su ID."""
+        return self._session.get(Barberia, id_)
+
     def update(self, id_: int, data: BarberiaUpdate) -> Optional[Barberia]:
         """Actualiza una barbería existente."""
         barberia = self._session.get(Barberia, id_)
@@ -40,10 +44,6 @@ class BarberiaRepository(Repository[Barberia]):
         self._session.commit()
         self._session.refresh(barberia)
         return barberia
-
-    def get_by_id(self, id_: int) -> Optional[Barberia]:
-        """Obtiene una barbería por su ID."""
-        return self._session.get(Barberia, id_)
 
     def delete(self, obj: Barberia) -> None:
         """Elimina una barbería por ID. Devuelve True si se eliminó."""

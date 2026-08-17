@@ -6,6 +6,8 @@ Define los esquemas de validación y serialización para la API.
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 
+from src.models.barberia_model import EstadoBarberia
+
 
 class BarberiaBase(BaseModel):
     """Modelo base con campos comunes para operaciones CRUD."""
@@ -31,12 +33,7 @@ class BarberiaBase(BaseModel):
         description="Teléfono de contacto (opcional)"
     )
 
-    horarios_atencion: Optional[str] = Field(
-        None,
-        min_length=1,
-        max_length=100,
-        description="Horario de atención (ejemplo: Lunes a Sábado 8:00 AM - 7:00 PM)"
-    )
+    estado: EstadoBarberia = EstadoBarberia.ACTIVO
 
 
 class BarberiaCreate(BarberiaBase):
@@ -69,11 +66,9 @@ class BarberiaUpdate(BaseModel):
         description="Nuevo teléfono"
     )
 
-    horarios_atencion: Optional[str] = Field(
+    estado: Optional[EstadoBarberia] = Field(
         None,
-        min_length=1,
-        max_length=100,
-        description="Nuevo horario de atención"
+        description="Nuevo estado (Activo/Inactivo)"
     )
 
 

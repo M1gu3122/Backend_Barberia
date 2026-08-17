@@ -3,9 +3,15 @@ Modelo de Usuario para la Barbería
 Representa a cualquier persona del sistema (cliente o empleado).
 """
 
-from sqlalchemy import Column, Integer, String
+from enum import Enum
+from sqlalchemy import Column, Integer, String, Enum as SAEnum
 from sqlalchemy.orm import relationship
 from src.config.database import Base
+
+
+class EstadoUsuario(str, Enum):
+    ACTIVO = "Activo"
+    INACTIVO = "Inactivo"
 
 
 class Usuario(Base):
@@ -22,6 +28,14 @@ class Usuario(Base):
     contraseña = Column(String(255), nullable=False)
     correo = Column(String(100), nullable=False, unique=True)
     telefono = Column(String(20))
+    estado = Column(
+        SAEnum(
+            EstadoUsuario,
+            values_callable=lambda enum_cls: [e.value for e in enum_cls]
+        ),
+        default=EstadoUsuario.ACTIVO,
+        nullable=False,
+    )
 
     # --- Relaciones ---
     # Perfil de empleado (opcional: solo si el usuario es empleado)

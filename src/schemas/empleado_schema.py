@@ -35,10 +35,10 @@ class EmpleadoCreate(BaseModel):
 
 class EmpleadoUpdate(BaseModel):
     """Modelo para actualizar empleados"""
-
+    id_usuario: Optional[int] = None
     estado: Optional[Literal["Activo", "Inactivo"]] = None
     fecha_contratacion: Optional[date] = None
-
+    tipo_empleado: Optional[TipoEmpleado] = None
     model_config = ConfigDict(from_attributes=True)
 
 

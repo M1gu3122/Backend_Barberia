@@ -136,7 +136,9 @@ class EmpleadoService(BaseService[Empleado]):
             return None
 
         # Actualizar los campos del empleado
+        # Se ignora id_usuario del payload: la identidad la da el path.
         update_data = datos.model_dump(exclude_unset=True)
+        update_data.pop("id_usuario", None)
         for key, value in update_data.items():
             setattr(empleado, key, value)
 

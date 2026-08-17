@@ -47,3 +47,15 @@ class CitaServicioRepository(Repository[CitaServicio]):
             self._session.commit()
             return True
         return False
+
+    def delete_by_cita(self, id_cita: int) -> bool:
+        """Elimina todas las relaciones de una cita."""
+        citas_servicios = self._session.query(CitaServicio).filter(
+            CitaServicio.id_cita == id_cita
+        ).all()
+        if not citas_servicios:
+            return False
+        for cs in citas_servicios:
+            self._session.delete(cs)
+        self._session.commit()
+        return True
