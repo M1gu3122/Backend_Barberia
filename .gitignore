@@ -1,8 +1,12 @@
-.aider*
 venv/
+.venv/
 __pycache__/
 *.pyc
-.vscode/
-.pytest_cache/
 .env
-.env.*
+.vercel/
+.aider/
+aider/
+models/
+model/
+cache/
+*.gguf
