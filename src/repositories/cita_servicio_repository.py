@@ -35,8 +35,8 @@ class CitaServicioRepository(Repository[CitaServicio]):
         """Crea una nueva relación cita-servicio."""
         cita_servicio = CitaServicio(**data.model_dump())
         self._session.add(cita_servicio)
-        self._session.commit()
-        self._session.refresh(cita_servicio)
+        self._session.flush()
+        self._session.refresh(cita_servicio)  # Obtener ID en MySQL
         return cita_servicio
 
     def delete_by_cita_and_servicio(self, id_cita: int, id_servicio: int) -> bool:

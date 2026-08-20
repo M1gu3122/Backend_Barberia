@@ -290,3 +290,21 @@ async def obtener_info_perfil_usuario(id: int, service: UsuarioService = Depends
     """
     return service.obtener_perfil_usuario(id)
 
+
+@router.get("/citas-por-estado/{id_cliente}")
+async def obtener_citas_por_estado_cliente(
+    id_cliente: int, 
+    service: UsuarioService = Depends(get_usuario_service)
+):
+    """
+    Obtiene el conteo de citas por estado para un cliente.
+    
+    Args:
+        id_cliente (int): ID del usuario/cliente
+        service: Servicio de usuario
+        
+    Returns:
+        dict: {citas_pendientes, citas_confirmadas, citas_completadas}
+    """
+    return service.obtener_citas_por_estado_cliente(id_cliente)
+

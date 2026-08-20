@@ -1,6 +1,6 @@
 """
 Modelo de Cita para la Barbería
-Representa la reserva de un cliente con un barbero en una fecha/hora.
+Representa la reserva de un cliente con un barbero en una barbería específica.
 """
 
 from enum import Enum
@@ -14,6 +14,7 @@ from src.config.database import Base
 class EstadoCita(str, Enum):
     PENDIENTE = "Pendiente"
     CONFIRMADA = "Confirmada"
+    EN_ATENCION = "En Atencion"
     CANCELADA = "Cancelada"
     COMPLETADA = "Completada"
 
@@ -68,6 +69,30 @@ class Cita(Base):
     @property
     def esta_confirmada(self) -> bool:
         return self.estado_cita == EstadoCita.CONFIRMADA
+
+    def puede_transitar_a(self, nuevo_estado: "EstadoCita") -> bool:
+        """Verifica si la transición de estado es permitida según las reglas de negocio."""
+        # Estados finales bloquean cualquier actualización
+        if self.estado_cita in (EstadoCita.COMPLETADA, EstadoCita.CANCELADA):
+            return False
+
+        # Definir transiciones permitidas por estado actual (máquina de estados completa)
+        transiciones_permitidas = {
+            # PENDIENTE puede confirmarse o cancelarse
+            EstadoCita.PENDIENTE: [
+                EstadoCita.CONFIRMADA,
+                EstadoCita.CANCELADA,
+            ],
+            # CONFIRMADA puede pasar a EN_ATENCIÓN o cancelarse
+            EstadoCita.CONFIRMADA: [
+                EstadoCita.EN_ATENCION,
+                EstadoCita.CANCELADA,
+            ],
+            # EN_ATENCIÓN solo puede completarse
+            EstadoCita.EN_ATENCION: [EstadoCita.COMPLETADA],
+        }
+
+        return nuevo_estado in transiciones_permitidas.get(self.estado_cita, [])
 
     # Propiedades para acceso directo a datos del cliente (para CitaResponse)
     @property

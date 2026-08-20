@@ -45,3 +45,8 @@ class BarberoServicioService(BaseService[BarberoServicio]):
             BarberoDisponibleResponse.model_validate(b)
             for b in self._repo.get_barberos_con_todos_los_servicios(ids_servicio)
         ]
+        
+    def asignar_servicio(self, id_usuario: int, id_servicio: int) -> BarberoServicioResponse:
+        """Asigna un servicio a un barbero."""
+        relacion_orm = self._repo.create(BarberoServicioCreate(id_usuario=id_usuario, id_servicio=id_servicio))
+        return BarberoServicioResponse.model_validate(relacion_orm)

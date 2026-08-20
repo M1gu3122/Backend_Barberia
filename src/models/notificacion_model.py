@@ -11,6 +11,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from src.config.database import Base
+from src.core.timezone import a_bd, ahora_bogota
 
 
 class TipoNotificacion(str, enum.Enum):
@@ -33,9 +34,9 @@ class Notificacion(Base):
     mensaje = Column(Text, nullable=False)
     fecha_envio = Column(
         DateTime,
-        default=datetime.now,
+        default=lambda: a_bd(ahora_bogota()),
         nullable=False,
-        comment="Fecha y hora en que se envió",
+        comment="Fecha y hora en que se envió (hora local de Colombia)",
     )
 
     estado = Column(

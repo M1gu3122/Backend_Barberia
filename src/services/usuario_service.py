@@ -253,3 +253,15 @@ class UsuarioService(BaseService[Usuario]):
                 "servicios": None,
             }
         ]
+
+    def obtener_citas_por_estado_cliente(self, id_cliente: int) -> dict:
+        """
+        Obtiene el conteo de citas por estado para un cliente.
+        
+        Args:
+            id_cliente: ID del usuario/cliente
+            
+        Returns:
+            dict con citas_pendientes, citas_confirmadas, citas_completadas
+        """
+        return self._repo.get_citas_por_estado_cliente(id_cliente)

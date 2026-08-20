@@ -64,9 +64,9 @@ async def eliminar_cita(id: int, service: CitaService = Depends(get_cita_service
         raise HTTPException(status_code=404, detail="Cita no encontrada")
     return {"message": "Cita eliminada correctamente"}
 
-@router.get("/obtener_citas_por_cliente/{id_cliente}", response_model=List[CitaResponse])
+@router.get("/obtener_citas_por_cliente/{id_cliente}", response_model=List[CitaDetalleResponse])
 async def listar_citas_por_cliente(id_cliente: int, service: CitaService = Depends(get_cita_service)):
-    citas = service.listar_citas_por_cliente(id_cliente)
+    citas = service.listar_citas_por_cliente_con_detalle(id_cliente)
     return citas
 
 @router.get("/obtener_citas_por_barbero/{id_barbero}", response_model=List[CitaResponse])
@@ -88,6 +88,8 @@ async def listar_citas_por_fecha(
         return citas
     except ValueError:
         raise HTTPException(status_code=400, detail="Formato de fecha inválido")
+
+
     
 @router.put("/{id_cita}/confirmar")
 async def confirmar_cita(id_cita: int, service: CitaService = Depends(get_cita_service)):

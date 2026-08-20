@@ -198,14 +198,47 @@ class UsuarioRepository:
     #         )
     #     else:
     #         return []
-
-    def get_usuarios_por_rango_fecha(self, fecha_inicio: datetime, fecha_fin: datetime) -> List[Usuario]:
-        """Obtiene usuarios creados en un rango de fechas"""
-        # Asumiendo que tienes un campo de creación
-        return self._db.query(Usuario).filter(
-            Usuario.fecha_creacion >= fecha_inicio,
-            Usuario.fecha_creacion <= fecha_fin
-        ).all()
+    # 
+    #     def get_usuarios_por_rango_fecha(self, fecha_inicio: datetime, fecha_fin: datetime) -> List[Usuario]:
+    #         """Obtiene usuarios creados en un rango de fechas"""
+    #         # Asumiendo que tienes un campo de creación
+    #         return self._db.query(Usuario).filter(
+    #             Usuario.fecha_creacion >= fecha_inicio,
+    #             Usuario.fecha_creacion <= fecha_fin
+    #         ).all()
+    # 
+    #     
+    #     
+    # 
+    # 
+    def get_citas_por_estado_cliente(self, id_cliente: int) -> dict:
+        """
+        Obtiene el conteo de citas por estado para un cliente.
+        
+        Args:
+            id_cliente: ID del usuario/cliente
+            
+        Returns:
+            dict con citas_pendientes, citas_confirmadas, citas_completadas
+        """
+        from src.models.cita_model import Cita, EstadoCita
+        from sqlalchemy import func, case
+        
+        resultado = (
+            self._db.query(
+                func.count(case((Cita.estado_cita == EstadoCita.PENDIENTE, 1))).label("citas_pendientes"),
+                func.count(case((Cita.estado_cita == EstadoCita.CONFIRMADA, 1))).label("citas_confirmadas"),
+                func.count(case((Cita.estado_cita == EstadoCita.COMPLETADA, 1))).label("citas_completadas"),
+            )
+            .filter(Cita.id_cliente == id_cliente)
+            .first()
+        )
+        
+        return {
+            "citas_pendientes": resultado.citas_pendientes or 0,
+            "citas_confirmadas": resultado.citas_confirmadas or 0,
+            "citas_completadas": resultado.citas_completadas or 0,
+        }
     
     
     

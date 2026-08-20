@@ -4,11 +4,12 @@ Define esquemas para creación, Actualización y Respuesta de Citas
 """
 
 # src/schemas/cita_schema.py
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 
+from src.core.timezone import serializar_bogota
 from src.models.cita_model import EstadoCita
 
 class CitaBase(BaseModel):
@@ -47,6 +48,10 @@ class CitaResponse(CitaBase):
         from_attributes=True,
     )
 
+    @field_serializer("fecha_hora")
+    def serializar_fecha_hora(self, valor: datetime) -> datetime:
+        return serializar_bogota(valor)
+
 class CitaInDB(CitaResponse):
     estado_temporal: Optional[str] = None
 
@@ -66,3 +71,7 @@ class CitaDetalleResponse(BaseModel):
     apellidos_barbero: str
     fecha_hora: datetime
     estado_cita: EstadoCita
+
+    @field_serializer("fecha_hora")
+    def serializar_fecha_hora(self, valor: datetime) -> datetime:
+        return serializar_bogota(valor)

@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.routers import auth_router, barberia_router, cita_router, empleado_router, notificacion_router, servicio_router, usuario_router,barbero_servicio_router, horario_barberia_router, servicio_adicional_router, fecha_no_laboral_router
+from src.routers import auth_router, barberia_router, cita_router, empleado_router, notificacion_router, servicio_router, usuario_router, barbero_servicio_router, horario_barberia_router, servicio_adicional_router, fecha_no_laboral_router, dashboard_router
 from src.models import barberia_model, barbero_servicio_model, cita_model, cita_servicio_model, empleado_model, notificacion_model, servicio_barberia_model, servicio_model, usuario_model, horario_barberia_model, servicio_adicional_model, fecha_no_laboral_model
 from src.config.database import Base, engine
-from src.messaging.email import start_scheduler
+from src.messaging.email import start_scheduler, start_auto_completar_citas
+from datetime import datetime
 
 
 # Crear las tablas en la base de datos
@@ -41,12 +42,16 @@ app.include_router(barbero_servicio_router.router)
 app.include_router(horario_barberia_router.router)
 app.include_router(servicio_adicional_router.router)
 app.include_router(fecha_no_laboral_router.router)
+app.include_router(dashboard_router.router)
 
 
 @app.on_event("startup")
 async def startup_event():
-    """Inicia el scheduler de notificaciones al arrancar la aplicación."""
+    """Inicia el scheduler de notificaciones y auto-completar citas."""
     start_scheduler()
+    start_auto_completar_citas()
+    
+
 
 
 @app.get("/")

@@ -3,10 +3,12 @@ Modelos Pydantic para la tabla NOTIFICACIONES.
 Define esquemas para crear, actualizar y responder notificaciones.
 """
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
+
+from src.core.timezone import serializar_bogota
 
 
 class TipoNotificacion(str, Enum):
@@ -70,7 +72,10 @@ class NotificacionUpdate(BaseModel):
 
 class NotificacionResponse(NotificacionBase):
     """Modelo para respuestas API."""
-    pass
+
+    @field_serializer("fecha_envio")
+    def serializar_fecha_envio(self, valor: datetime) -> datetime:
+        return serializar_bogota(valor)
 
 
 class NotificacionInDB(NotificacionResponse):

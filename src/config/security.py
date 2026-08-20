@@ -100,3 +100,26 @@ def require_admin_o_recepcionista(
             detail="Solo administradores o recepcionistas pueden realizar esta acción",
         )
     return usuario
+
+
+def es_admin(usuario: Usuario) -> bool:
+    """Verifica que el usuario sea Administrador."""
+    return (
+        usuario.empleado is not None
+        and usuario.empleado.tipo_empleado == TipoEmpleado.ADMINISTRADOR
+    )
+
+
+def require_admin(
+    usuario: Usuario = Depends(obtener_usuario_actual),
+) -> Usuario:
+    """
+    Dependencia para proteger rutas que solo pueden usar
+    administradores.
+    """
+    if not es_admin(usuario):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo administradores pueden realizar esta acción",
+        )
+    return usuario

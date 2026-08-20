@@ -4,7 +4,8 @@ Representa a cualquier persona del sistema (cliente o empleado).
 """
 
 from enum import Enum
-from sqlalchemy import Column, Integer, String, Enum as SAEnum
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, Enum as SAEnum, DateTime
 from sqlalchemy.orm import relationship
 from src.config.database import Base
 
@@ -36,6 +37,8 @@ class Usuario(Base):
         default=EstadoUsuario.ACTIVO,
         nullable=False,
     )
+    reset_token = Column(String(255), nullable=True)
+    reset_token_expiry = Column(DateTime, nullable=True)
 
     # --- Relaciones ---
     # Perfil de empleado (opcional: solo si el usuario es empleado)

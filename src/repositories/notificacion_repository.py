@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from src.models.notificacion_model import Notificacion, TipoNotificacion, EstadoNotificacion
 from src.schemas.notificacion_schema import NotificacionCreate, NotificacionUpdate
+from src.core.timezone import a_bd, ahora_bogota
 
 
 class NotificacionRepository:
@@ -31,6 +32,8 @@ class NotificacionRepository:
     def create(self, datos: NotificacionCreate) -> Notificacion:
         """Crea una nueva notificación."""
         notificacion = Notificacion(**datos.model_dump())
+        # Asignar fecha de envío explícita (hora local de Colombia naive)
+        notificacion.fecha_envio = a_bd(ahora_bogota())
         self._db.add(notificacion)
         self._db.commit()
         self._db.refresh(notificacion)

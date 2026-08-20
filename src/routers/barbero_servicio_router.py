@@ -20,7 +20,7 @@ def get_barbero_servicio_service(db: Session = Depends(get_db)):
 async def crear_relacion(relacion: BarberoServicioCreate, service: BarberoServicioService = Depends(get_barbero_servicio_service)):
     return service.crear_relacion(relacion)
 
-@router.get("/barbero/{id_usuario}", response_model=List[BarberoServicioResponse])
+@router.get("/obtener_servicios_por_barbero/{id_usuario}", response_model=List[BarberoServicioResponse])
 async def obtener_servicios_por_barbero(id_usuario: int, service: BarberoServicioService = Depends(get_barbero_servicio_service)):
     return service.obtener_servicios_por_barbero(id_usuario)
 
@@ -49,3 +49,7 @@ async def eliminar_relacion(id_usuario: int, id_servicio: int, service: BarberoS
     if not deleted:
         raise HTTPException(status_code=404, detail="Relación no encontrada")
     return {"message": "Relación eliminada correctamente"}
+
+@router.post("/asignar_servicio/{id_barbero}/{id_servicio}", response_model=BarberoServicioResponse)
+async def asignar_servicio(id_barbero: int, id_servicio: int, service: BarberoServicioService = Depends(get_barbero_servicio_service)):
+    return service.asignar_servicio(id_barbero, id_servicio)

@@ -21,6 +21,7 @@ from src.schemas.empleado_schema import EmpleadoCreate, EmpleadoUpdate, Empleado
 from src.repositories.empleado_repository import EmpleadoRepository
 from src.repositories.usuario_repository import UsuarioRepository
 from src.services.base_service import BaseService
+from src.core.timezone import hoy_bogota
 
 
 class EmpleadoService(BaseService[Empleado]):
@@ -56,7 +57,7 @@ class EmpleadoService(BaseService[Empleado]):
 
 
         # Validar fecha de contratación
-        if datos.fecha_contratacion > date.today():
+        if datos.fecha_contratacion > hoy_bogota():
             raise ValueError("La fecha de contratación no puede ser futura")
 
         # Validar tipo de empleado

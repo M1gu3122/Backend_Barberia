@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>✅ Cita confirmada</h2>
+
+<p>Hola <strong>{{ nombres }} {{ apellidos }}</strong>,</p>
+
+<p>Tu cita ha sido agendada correctamente:</p>
+
+<div style="background: #f8f9fa; border-radius: 6px; padding: 16px; margin: 16px 0;">
+    <p><strong>📅 Fecha:</strong> {{ fecha }}</p>
+    <p><strong>🕐 Hora:</strong> {{ hora }}</p>
+    <p><strong>💇 Barbero:</strong> {{ barbero }}</p>
+    <p><strong>✂️ Servicios:</strong> {{ servicios }}</p>
+</div>
+
+<p>Te recordaremos 30 minutos antes de tu cita.</p>
+
+<p>Si necesitas cancelar o reprogramar, contacta con nosotros.</p>
+
+<p>¡Te esperamos!<br>El equipo de Barbería</p>
+{% endblock %}
