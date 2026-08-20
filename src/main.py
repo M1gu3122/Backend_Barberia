@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
 from src.routers import auth_router, barberia_router, cita_router, empleado_router, notificacion_router, servicio_router, usuario_router, barbero_servicio_router, horario_barberia_router, servicio_adicional_router, fecha_no_laboral_router, dashboard_router
 from src.models import barberia_model, barbero_servicio_model, cita_model, cita_servicio_model, empleado_model, notificacion_model, servicio_barberia_model, servicio_model, usuario_model, horario_barberia_model, servicio_adicional_model, fecha_no_laboral_model
 from src.config.database import Base, engine
@@ -15,10 +16,19 @@ app = FastAPI(
     description="API para gestión de una barbería",
     version="1.0.0"
 )
-origins = [
-    "http://127.0.0.1:5500",
-    "http://localhost:5500",
-]
+import os
+
+# CORS origins - leer de variable de entorno para compatibilidad con Vercel
+# Formato esperado: "https://dominio.com,http://localhost:3000"
+# Si no está definida, se usan los orígenes por defecto para desarrollo local
+_cors_origins = os.getenv("ALLOWED_ORIGINS")
+if _cors_origins:
+    origins = [origin.strip() for origin in _cors_origins.split(",")]
+else:
+    origins = [
+        "http://127.0.0.1:5500",
+        "http://localhost:5500",
+    ]
 
 app.add_middleware(
     CORSMiddleware,
