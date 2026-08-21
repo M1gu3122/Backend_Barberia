@@ -43,7 +43,7 @@ async def obtener_barberos_disponibles(
     """Barberos activos que pueden realizar todos los servicios indicados."""
     return service.obtener_barberos_con_todos_los_servicios(ids_servicio)
 
-@router.delete("/{id_usuario}/{id_servicio}")
+@router.delete("/eliminarServicioBarbero/{id_usuario}/{id_servicio}")
 async def eliminar_relacion(id_usuario: int, id_servicio: int, service: BarberoServicioService = Depends(get_barbero_servicio_service)):
     deleted = service.eliminar_relacion(id_usuario, id_servicio)
     if not deleted:
