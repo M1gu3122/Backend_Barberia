@@ -83,8 +83,7 @@ class CitaService(BaseService):
             return False
         return barberia.estado == EstadoBarberia.ACTIVO
 
-    # def _validar_barbero_en_barberia(self, id_barbero: int, id_barberia: int) -> bool:
-    #     return True
+
 
     def _validar_servicios(self, id_servicios: List[int], id_barberia: int) -> bool:
         """Reglas 7 y 8: todos los servicios deben existir y estar activos."""
@@ -238,7 +237,7 @@ class CitaService(BaseService):
 
         return True
 
-    # CREATE - Reglas de negocio actualizadas
+
     
     async def crear_cita(self, datos: CitaCreate) -> CitaResponse:
         COL_TZ = ZoneInfo("America/Bogota")
@@ -456,7 +455,7 @@ class CitaService(BaseService):
         if not cita:
             return None
 
-        # ✅ Validación: solo bloquear si se intenta cambiar el estado a un valor no permitido
+        #solo bloquear si se intenta cambiar el estado a un valor no permitido
         # Si solo se actualizan campos operativos (barbero, fecha, hora), se permite
         # Validar transición de estado únicamente si realmente cambia el estado
         if (
@@ -500,7 +499,7 @@ class CitaService(BaseService):
                     detail="No se pueden actualizar citas a fechas pasadas",
                 )
 
-        # ✅ NUEVO: Detectar qué campos realmente van a cambiar (para optimizar validaciones)
+    
         # Un campo se considera "cambiando" si el valor nuevo es diferente al actual
         # y no es None (para campos opcionales)
         _cambiando_fecha = datos.fecha_hora is not None and cita.fecha_hora != datos.fecha_hora
@@ -509,7 +508,7 @@ class CitaService(BaseService):
         ids_servicios_actuales = [s.id_servicio for s in cita.servicios]
         _cambiando_servicios = datos.ids_servicios is not None and ids_servicios_actuales != datos.ids_servicios
 
-        # ✅ Si vienen servicios, reemplazarlos (borrar y crear)
+        #  Si vienen servicios, reemplazarlos (borrar y crear)
         if datos.ids_servicios is not None:
             if not datos.ids_servicios:
                 raise ValueError("La cita debe incluir al menos un servicio")
@@ -543,13 +542,13 @@ class CitaService(BaseService):
                     CitaServicioCreate(id_cita=id_cita, id_servicio=sid)
                 )
 
-            # ✅ NUEVO: Si cambian servicios, recalcular duración total con buffer
+            #  Si cambian servicios, recalcular duración total con buffer
             # y validar disponibilidad con el nuevo intervalo
             if _cambiando_servicios:
                 duracion_total = self._calcular_tiempo_total(datos.ids_servicios)
                 # Aquí continuaríamos con validación de disponibilidad abajo
 
-        # ✅ NUEVA LÓGICA DE REPROGRAMACIÓN COMPLETA
+    
         # Solo saltarse la validación de solapamiento si SOLO se cambia el estado
         # En cualquier otro caso (fecha, hora, barbero, servicios), validar completamente
         # excluyendo la propia cita actual (id_cita).
@@ -634,7 +633,7 @@ class CitaService(BaseService):
         cita = self._repo.get_by_id(id_cita)
         if not cita:
             return None
-        if not cita.puede_transitar_a(EstadoCita.COMPLETADA):  # type: ignore[arg-type]
+        if not cita.puede_transitar_a(EstadoCita.COMPLETADA):
             raise ValueError(
                 f"Solo se pueden completar citas en estado '{cita.estado_cita.value}' "
                 f"o EN_ATENCIÓN, no desde '{cita.estado_cita.value}'"
@@ -653,71 +652,86 @@ class CitaService(BaseService):
         return servicio_orm
 
     def auto_completar_citas_vencidas(self) -> int:
-        """
-        Scheduler que se ejecuta cada 5 minutos y gestiona los estados de las citas:
-        
-        Reglas:
-        1. Si una cita PENDIENTE está a menos de 5 minutos de su inicio y sigue PENDIENTE,
-           se cancela automáticamente (no se convierte a COMPLETADA).
-        2. Si una cita EN_ATENCIÓN tiene su tiempo estimado cumplido, pasa a COMPLETADA.
-        3. Nunca convierte directamente PENDIENTE a COMPLETADA.
-        4. No modifica citas CANCELADA ni COMPLETADA automáticamente.
-        5. El scheduler debe ejecutarse cada 5 minutos.
-        
-        Retorna la cantidad de citas actualizadas.
-        """
+
         from datetime import datetime, timedelta
         from zoneinfo import ZoneInfo
-        from sqlalchemy import or_
 
         COL_TZ = ZoneInfo("America/Bogota")
         ahora = datetime.now(COL_TZ)
 
-        # Estados que no deben modificarse automáticamente
-        estados_inmutables = [EstadoCita.CANCELADA, EstadoCita.COMPLETADA]
+        actualizadas = 0
 
-        # Obtener citas que no son estados finales
+        # Obtener todas las citas que todavía pueden cambiar
         citas_a_procesar = (
             self._db.query(Cita)
-            .filter(Cita.estado_cita.notin_(estados_inmutables))
+            .filter(
+                Cita.estado_cita.in_(
+                    [
+                        EstadoCita.PENDIENTE,
+                        EstadoCita.CONFIRMADA,
+                        EstadoCita.EN_ATENCION,
+                    ]
+                )
+            )
             .all()
         )
 
-        actualizadas = 0
-
         for cita in citas_a_procesar:
-            # Normalizar zona horaria de la cita
+
+            # ---------------------------------------------------------
+            # NORMALIZAR FECHA DE LA CITA
+            # ---------------------------------------------------------
             fecha_hora_cita = cita.fecha_hora
+
             if fecha_hora_cita.tzinfo is None:
                 fecha_hora_cita = fecha_hora_cita.replace(tzinfo=COL_TZ)
+            else:
+                fecha_hora_cita = fecha_hora_cita.astimezone(COL_TZ)
 
+            # ---------------------------------------------------------
+            # CALCULAR DURACIÓN DE LOS SERVICIOS
+            # ---------------------------------------------------------
             duracion_total = self._calcular_tiempo_servicios(cita.id_cita)
-            if duracion_total == 0:
-                duracion_total = 30  # fallback
 
-            fin_estimado = fecha_hora_cita + timedelta(minutes=duracion_total)
+            if duracion_total <= 0:
+                duracion_total = 30
 
+            fin_estimado = fecha_hora_cita + timedelta(
+                minutes=duracion_total
+            )
+
+            # =========================================================
+            # PENDIENTE
+            # =========================================================
             if cita.estado_cita == EstadoCita.PENDIENTE:
-                # Regla 1 & 6: Si PENDIENTE y faltan 5 minutos o menos para su inicio,
-                # cancelar automáticamente (NUNCA convertir a COMPLETADA directamente)
-                tiempo_hasta_inicio = (fecha_hora_cita - ahora).total_seconds() / 60
-                if 0 <= tiempo_hasta_inicio <= 5:
-                    # Cita próxima a iniciar y aún PENDIENTE -> auto-cancelar
+
+                # Si ya llegó la hora o ya pasó:
+                # la cita se cancela automáticamente.
+                if ahora >= fecha_hora_cita:
                     cita.estado_cita = EstadoCita.CANCELADA
                     actualizadas += 1
-                # Si ya pasó el tiempo o faltan más de 5 minutos, dejarla como PENDIENTE
-                # (no hacer nada, respetar la regla de no pasar PENDIENTE a COMPLETADA)
 
-            elif cita.estado_cita == EstadoCita.EN_ATENCIÓN:
-                # Regla 4: Si EN_ATENCIÓN y se cumplió el tiempo estimado, completar
+            # =========================================================
+            # EN_ATENCION
+            # =========================================================
+            elif cita.estado_cita == EstadoCita.EN_ATENCION:
+
+                # Si terminó el tiempo estimado:
+                # pasa automáticamente a COMPLETADA.
                 if ahora >= fin_estimado:
                     cita.estado_cita = EstadoCita.COMPLETADA
                     actualizadas += 1
-                # Si no se cumplió el tiempo, dejarla EN_ATENCIÓN
 
-            # Regla 2 & 3: Para CONFIRMADA y otros estados, no aplicar cambios automáticos
-            # que violen la regla de no pasar PENDIENTE a COMPLETADA
+            # =========================================================
+            # CONFIRMADA
+            # =========================================================
+            elif cita.estado_cita == EstadoCita.CONFIRMADA:
 
+                # No se modifica automáticamente.
+                # Debe pasar manualmente a EN_ATENCION.
+                pass
+
+        # Guardar cambios solamente si hubo modificaciones
         if actualizadas > 0:
             self._db.commit()
 

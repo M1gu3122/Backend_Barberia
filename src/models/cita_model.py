@@ -86,7 +86,9 @@ class Cita(Base):
             # CONFIRMADA puede pasar a EN_ATENCIÓN o cancelarse
             EstadoCita.CONFIRMADA: [
                 EstadoCita.EN_ATENCION,
+                EstadoCita.COMPLETADA,
                 EstadoCita.CANCELADA,
+                
             ],
             # EN_ATENCIÓN solo puede completarse
             EstadoCita.EN_ATENCION: [EstadoCita.COMPLETADA],
